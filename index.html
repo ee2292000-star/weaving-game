@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>織布學徒挑戰</title>
+
+<style>
+body{
+  margin:0;
+  font-family:"Microsoft JhengHei",sans-serif;
+  background:linear-gradient(135deg,#f4dfbd,#d8b481);
+  color:#3a2414;
+  text-align:center;
+}
+
+.container{
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  padding:20px;
+  box-sizing:border-box;
+}
+
+h1{
+  font-size:56px;
+  margin:10px;
+}
+
+.subtitle{
+  font-size:26px;
+  margin-bottom:20px;
+}
+
+.score{
+  font-size:32px;
+  font-weight:bold;
+  margin-bottom:20px;
+}
+
+.card-area{
+  width:430px;
+  height:560px;
+  perspective:1200px;
+  margin-bottom:20px;
+}
+
+.card{
+  width:100%;
+  height:100%;
+  position:relative;
+  transform-style:preserve-3d;
+  transition:transform .8s;
+}
+
+.card.flipped{
+  transform:rotateY(180deg);
+}
+
+.card-face{
+  position:absolute;
+  inset:0;
+  border-radius:32px;
+  backface-visibility:hidden;
+  border:8px solid #4b3728;
+  box-shadow:0 14px 0 rgba(0,0,0,.25);
+  background:#fffaf0;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  overflow:hidden;
+}
+
+.card-front img{
+  width:88%;
+  height:auto;
+}
+
+.card-front{
+  background:#fff;
+}
+
+.card-back{
+  transform:rotateY(180deg);
+  padding:30px;
+  box-sizing:border-box;
+}
+
+.card-back .label{
+  font-size:28px;
+  margin-bottom:20px;
+}
+
+.question{
+  font-size:70px;
+  font-weight:bold;
+  margin:20px 0;
+}
+
+.hint{
+  font-size:36px;
+  color:#b5261e;
+  font-weight:bold;
+}
+
+.instruction{
+  font-size:24px;
+  background:#fff2d7;
+  padding:12px 24px;
+  border-radius:16px;
+  margin:10px 0 20px;
+}
+
+button{
+  font-size:26px;
+  padding:16px 30px;
+  margin:8px;
+  border:none;
+  border-radius:18px;
+  cursor:pointer;
+  font-weight:bold;
+  box-shadow:0 6px 0 rgba(0,0,0,.25);
+}
+
+button:active{
+  transform:translateY(4px);
+  box-shadow:0 2px 0 rgba(0,0,0,.25);
+}
+
+.flip{background:#2f73c9;color:white;}
+.correct{background:#3fa34d;color:white;}
+.wrong{background:#d94b3d;color:white;}
+.start{background:#7b4a24;color:white;}
+
+.message{
+  font-size:30px;
+  font-weight:bold;
+  height:40px;
+  margin-top:10px;
+}
+
+.cloth{
+  font-size:38px;
+  letter-spacing:5px;
+  margin-top:8px;
+}
+
+.hidden{display:none;}
+
+.pass{
+  background:#fffaf0;
+  border:8px solid #4b3728;
+  border-radius:32px;
+  padding:40px;
+  box-shadow:0 14px 0 rgba(0,0,0,.25);
+}
+
+.pass h2{
+  font-size:54px;
+  color:#b5261e;
+}
+
+.pass p{
+  font-size:32px;
+}
+
+@media(max-width:600px){
+  h1{font-size:38px;}
+  .subtitle{font-size:20px;}
+  .card-area{
+    width:90vw;
+    height:118vw;
+    max-height:560px;
+  }
+  .question{font-size:52px;}
+  .hint{font-size:28px;}
+  button{font-size:22px;}
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <h1>🧵 織布學徒挑戰</h1>
+  <div class="subtitle">翻開任務牌，找到展區中的正確物件！</div>
+
+  <div id="startScreen">
+    <button class="start" onclick="startGame()">開始挑戰</button>
+  </div>
+
+  <div id="gameScreen" class="hidden">
+
+    <div class="score">⭐ 已答對：<span id="score">0</span> / 5</div>
+
+    <div class="card-area">
+      <div class="card" id="card">
+
+        <div class="card-face card-front">
+          <img src="手中的紋路.png" alt="手中的紋路">
+        </div>
+
+        <div class="card-face card-back" id="cardContent">
+          <div class="label">請找出</div>
+          <div class="question">?</div>
+          <div class="hint">請按「翻牌」</div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="instruction">
+      請玩家到展區指出實體物件，再由工作人員判斷。
+    </div>
+
+    <button class="flip" onclick="drawCard()">🃏 翻牌</button>
+    <button class="correct" onclick="markCorrect()">✅ 答對</button>
+    <button class="wrong" onclick="markWrong()">❌ 答錯</button>
+
+    <div class="message" id="message"></div>
+    <div class="cloth" id="cloth"></div>
+
+  </div>
+
+  <div id="passScreen" class="hidden pass">
+    <h2>🎉 挑戰成功！</h2>
+    <p>你已答對 5 題</p>
+    <p><strong>獲得稱號：見習織布學徒</strong></p>
+    <div style="font-size:80px;">🧵🏅</div>
+    <button class="start" onclick="restartGame()">再玩一次</button>
+  </div>
+
+</div>
+
+<script>
+const questions = [
+  {name:"qsayan", hint:"整經架"},
+  {name:"qara", hint:"分經棒"},
+  {name:"wayay", hint:"線材"},
+  {name:"qongu", hint:"織布機"},
+  {name:"ikus", hint:"梭子"},
+  {name:"bgira", hint:"打緯刀"},
+  {name:"kusun", hint:"捲線棒"},
+  {name:"btiyan", hint:"挑經棒"}
+];
+
+let score = 0;
+let currentQuestion = null;
+let usedQuestions = [];
+
+function startGame(){
+  score = 0;
+  usedQuestions = [];
+  currentQuestion = null;
+
+  document.getElementById("score").textContent = score;
+  document.getElementById("cloth").textContent = "";
+  document.getElementById("message").textContent = "";
+
+  document.getElementById("startScreen").classList.add("hidden");
+  document.getElementById("gameScreen").classList.remove("hidden");
+  document.getElementById("passScreen").classList.add("hidden");
+
+  document.getElementById("card").classList.remove("flipped");
+}
+
+function drawCard(){
+  const card = document.getElementById("card");
+  const cardContent = document.getElementById("cardContent");
+
+  document.getElementById("message").textContent = "";
+
+  card.classList.remove("flipped");
+
+  setTimeout(() => {
+    if(usedQuestions.length === questions.length){
+      usedQuestions = [];
+    }
+
+    const available = questions.filter(q => !usedQuestions.includes(q.name));
+    currentQuestion = available[Math.floor(Math.random() * available.length)];
+    usedQuestions.push(currentQuestion.name);
+
+    cardContent.innerHTML = `
+      <div class="label">請找出</div>
+      <div class="question">${currentQuestion.name}</div>
+      <div class="hint">${currentQuestion.hint}</div>
+    `;
+
+    card.classList.add("flipped");
+  }, 500);
+}
+
+function markCorrect(){
+  if(!currentQuestion){
+    document.getElementById("message").textContent = "請先翻牌喔！";
+    return;
+  }
+
+  score++;
+  document.getElementById("score").textContent = score;
+  document.getElementById("message").textContent = "✨ 答對了！";
+  document.getElementById("cloth").textContent += "▰";
+
+  currentQuestion = null;
+
+  if(score >= 5){
+    setTimeout(() => {
+      document.getElementById("gameScreen").classList.add("hidden");
+      document.getElementById("passScreen").classList.remove("hidden");
+    }, 800);
+  }else{
+    setTimeout(() => {
+      document.getElementById("card").classList.remove("flipped");
+    }, 900);
+  }
+}
+
+function markWrong(){
+  document.getElementById("message").textContent = "❌ 再觀察一下展品喔！";
+}
+
+function restartGame(){
+  startGame();
+}
+</script>
+
+</body>
+</html>
